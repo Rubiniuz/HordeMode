@@ -22,20 +22,21 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void MoveForward(float Value);
+	virtual void Landed(const FHitResult& Hit) override;
 
+
+	void MoveForward(float Value);
 	void MoveRight(float Value);
 
 	void BeginCrouch();
-
 	void EndCrouch();
 
 	void BeginJump();
-
 	void EndJump();
-
-	UFUNCTION()
 	void ResetJumps();
+
+	void Sprint();
+	void StopSprint();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
@@ -43,13 +44,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* SpringArmComp;
 
-	virtual void Landed(const FHitResult& Hit) override;
-
-	UPROPERTY(EditAnywhere, Category = "Jumping")
+	UPROPERTY(EditAnywhere, Category = "Movement: Jumping")
 	int JumpCount;
 
-	UPROPERTY(EditAnywhere, Category = "Jumping")
+	UPROPERTY(EditAnywhere, Category = "Movement: Jumping")
 	int MaxJumps;
+
+	UPROPERTY(EditAnywhere, Category = "Movement: Sprinting")
+	float SprintSpeedMultiplier;
 
 public:	
 	// Called every frame

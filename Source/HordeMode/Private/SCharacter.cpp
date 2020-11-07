@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -26,6 +27,8 @@ ASCharacter::ASCharacter()
     JumpCount = 0;
 	MaxJumps = 2;
 	JumpMaxHoldTime = 0.1f;
+
+	SprintSpeedMultiplier = 1.75f;
 	
 }
 
@@ -58,6 +61,9 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::BeginJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ASCharacter::EndJump);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::Sprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::StopSprint);
 
 }
 
@@ -104,4 +110,14 @@ void ASCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 	ResetJumps();
+}
+
+void ASCharacter::Sprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed *= SprintSpeedMultiplier;
+}
+
+void ASCharacter::StopSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed /= SprintSpeedMultiplier;
 }
