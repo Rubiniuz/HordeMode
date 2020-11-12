@@ -174,6 +174,9 @@ void ASCharacter::UpdateGrapple()
 {
 	if(bGrappleConnected)
 	{
+		//bSimGravityDisabled = true;
+		GetCharacterMovement()->GravityScale = 0.6f;
+
 		UCharacterMovementComponent* ForceComp = GetCharacterMovement();
 
 		FVector Dir = GetActorLocation() - HookPoint;
@@ -187,11 +190,16 @@ void ASCharacter::UpdateGrapple()
 
 		ForceComp->AddForce(Dir);
 
-		FVector SwingForce = CameraComp->GetForwardVector();
-		SwingForce *= 10000.0f;
+		//FVector SwingForce = CameraComp->GetForwardVector();
+		//SwingForce *= 10000.0f;
 
-		ForceComp->AddForce(SwingForce);
+		//ForceComp->AddForce(SwingForce);
 
+	}
+	else
+	{
+		GetCharacterMovement()->GravityScale = 1.0f;
+		//bSimGravityDisabled = false;
 	}
 }
 
