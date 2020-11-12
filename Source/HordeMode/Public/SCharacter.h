@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "SCharacter.generated.h"
 
+class UCableComponent;
+class USphereComponent;
 class USpringArmComponent;
 class UCameraComponent;
 
@@ -52,6 +54,41 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Movement: Sprinting")
 	float SprintSpeedMultiplier;
+
+	//Grapple stuff
+	UPROPERTY(VisibleAnywhere, Category = "Grapple : Components")
+	    USphereComponent* SphereComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Grapple : Components")
+		class UCableComponent* CableComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling : Components")
+		UBlueprint* HookPointActor; // Actor HookPoint
+
+	UPROPERTY(EditAnywhere, Category = "Grappling : Variables")
+	    float HookLength; // 5000
+
+	UPROPERTY(EditAnywhere, Category = "Grappling : Variables")
+	    float GrappleSpeed; // -2
+
+	UPROPERTY(EditAnywhere, Category = "Grappling : Variables")
+		float ReelingSpeed; // -2
+
+
+	bool bGrappleConnected;
+	FVector HookPoint;
+	AActor* GrapplingActor;
+
+	void Grapple();
+	void UpdateGrapple();
+	void ReelIn();
+	void ReelOut();
+	void StopReelIn();
+	void StopReelOut();
+	void UpdateReeling();
+
+	bool bReelIn;
+	bool bReelOut;
 
 public:	
 	// Called every frame

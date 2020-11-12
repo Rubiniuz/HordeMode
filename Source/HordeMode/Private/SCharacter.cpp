@@ -2,10 +2,14 @@
 
 #include "HordeMode/Public/SCharacter.h"
 
+#include "CableComponent.h"
+#include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -23,13 +27,17 @@ ASCharacter::ASCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
 
-
     JumpCount = 0;
 	MaxJumps = 2;
 	JumpMaxHoldTime = 0.1f;
 
-	SprintSpeedMultiplier = 1.75f;
+	SprintSpeedMultiplier = 1.45f;
 	
+	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	SphereComp->SetupAttachment(RootComponent);
+
+	CableComp = CreateDefaultSubobject<UCableComponent>(TEXT("CableComp"));
+	CableComp->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -37,12 +45,15 @@ void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	JumpMaxCount = MaxJumps;
+	bGrappleConnected = false;
 }
 
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	UpdateReeling();
+	UpdateGrapple();
 }
 
 // Called to bind functionality to input
@@ -64,6 +75,12 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::StopSprint);
+
+	PlayerInputComponent->BindAction("Grapple", IE_Pressed, this, &ASCharacter::Grapple);
+	PlayerInputComponent->BindAction("ReelIn", IE_Pressed, this, &ASCharacter::ReelIn);
+	PlayerInputComponent->BindAction("ReelOut", IE_Pressed, this, &ASCharacter::ReelOut);
+	PlayerInputComponent->BindAction("ReelIn", IE_Released, this, &ASCharacter::StopReelIn);
+	PlayerInputComponent->BindAction("ReelOut", IE_Released, this, &ASCharacter::StopReelOut);
 
 }
 
@@ -120,4 +137,121 @@ void ASCharacter::Sprint()
 void ASCharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed /= SprintSpeedMultiplier;
+}
+
+void ASCharacter::Grapple()
+{
+	if(bGrappleConnected == false)
+	{
+		FHitResult hit;
+		FVector start = SphereComp->GetComponentLocation();
+		FVector end = start + (CameraComp->GetForwardVector() * HookLength);
+		if(GetWorld()->SweepSingleByChannel(hit, start, end, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(15.0f)))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Sweep succesfull"));
+			HookPoint = hit.Location;
+			bGrappleConnected = true;
+			
+			FTransform transform = UKismetMathLibrary::MakeTransform(HookPoint, FRotator::ZeroRotator, FVector::ZeroVector);
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Undefined;
+
+			GrapplingActor = GetWorld()->SpawnActor<AActor>(HookPointActor->GeneratedClass, transform, SpawnParams);
+			CableComp->SetAttachEndTo(GrapplingActor, FName());
+
+			CableComp->SetHiddenInGame(false, false);
+		}
+	}
+	else if (bGrappleConnected == true)
+	{
+		bGrappleConnected = false;
+		CableComp->SetHiddenInGame(true, false);
+	}
+}
+
+void ASCharacter::UpdateGrapple()
+{
+	if(bGrappleConnected)
+	{
+		UCharacterMovementComponent* ForceComp = GetCharacterMovement();
+
+		FVector Dir = GetActorLocation() - HookPoint;
+
+		float DotProduct = FVector::DotProduct(Dir, GetVelocity());
+
+		Dir.Normalize(0.0001);
+
+		Dir *= DotProduct;
+		Dir *= GrappleSpeed;
+
+		ForceComp->AddForce(Dir);
+
+		FVector SwingForce = CameraComp->GetForwardVector();
+		SwingForce *= 10000.0f;
+
+		ForceComp->AddForce(SwingForce);
+
+	}
+}
+
+void ASCharacter::ReelIn()
+{
+	if (bGrappleConnected == true)
+	{
+		bReelIn = true;
+	}
+}
+
+void ASCharacter::ReelOut()
+{
+	if (bGrappleConnected == true)
+	{
+		bReelOut = true;
+	}
+}
+
+void ASCharacter::StopReelIn()
+{
+	if (bGrappleConnected == true)
+	{
+		bReelIn = false;
+	}
+}
+
+void ASCharacter::StopReelOut()
+{
+	if (bGrappleConnected == true)
+	{
+		bReelOut = false;
+	}
+}
+
+void ASCharacter::UpdateReeling()
+{
+    if(bGrappleConnected == true)
+    {
+		if(FVector::Dist(GetActorLocation(), HookPoint) > 50.0f)
+		{
+			if (bReelOut == true)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Reeling Out"));
+				FVector Dir = GetActorLocation() - HookPoint;
+				Dir.Normalize(0.0001);
+
+				Dir *= ReelingSpeed;
+				LaunchCharacter(Dir, false, false);
+			}
+			else if (bReelIn == true)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Reeling In"));
+				FVector Dir = GetActorLocation() - HookPoint;
+				Dir.Normalize(0.0001);
+				Dir *= -1.0f;
+
+				Dir *= ReelingSpeed;
+				LaunchCharacter(Dir, false, false);
+			}
+		}
+    }
 }
