@@ -239,21 +239,19 @@ void ASCharacter::UpdateReeling()
 		{
 			if (bReelOut == true)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Reeling Out"));
-				FVector Dir = GetActorLocation() - HookPoint;
-				Dir.Normalize(0.0001);
+				FVector Dir = FVector(0,0,-0.5f);
+				Dir.Z *= ReelingSpeed;
 
-				Dir *= ReelingSpeed;
 				LaunchCharacter(Dir, false, false);
 			}
 			else if (bReelIn == true)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Reeling In"));
 				FVector Dir = GetActorLocation() - HookPoint;
 				Dir.Normalize(0.0001);
 				Dir *= -1.0f;
 
 				Dir *= ReelingSpeed;
+
 				LaunchCharacter(Dir, false, false);
 			}
 		}
