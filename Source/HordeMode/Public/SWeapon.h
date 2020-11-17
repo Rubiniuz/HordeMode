@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "SWeapon.generated.h"
 
+class USkeletalMeshComponent;
+class UDamageType;
+class UParticleSystem;
+
 UCLASS()
 class HORDEMODE_API ASWeapon : public AActor
 {
@@ -25,8 +29,17 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void Fire();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Variables")
 	TSubclassOf<UDamageType> DamageType;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sockets")
+	FName MuzzleSocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
+	UParticleSystem* MuzzleFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
+	UParticleSystem* ImpactFX;
 
 public:	
 	// Called every frame

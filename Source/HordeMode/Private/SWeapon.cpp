@@ -4,6 +4,7 @@
 #include "SWeapon.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 // Sets default values
 ASWeapon::ASWeapon()
@@ -13,6 +14,8 @@ ASWeapon::ASWeapon()
 
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
+
+	MuzzleSocketName = "MuzzleSocket";
 
 }
 
@@ -27,7 +30,6 @@ void ASWeapon::BeginPlay()
 void ASWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ASWeapon::Fire()
@@ -58,11 +60,21 @@ void ASWeapon::Fire()
 			AActor* HitActor = Hit.GetActor();
 
 			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+
+			if(ImpactFX)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+			}
 		}
 
 		//temp line : #Include "DrawDebugHelpers.h
 
 		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, false, 1.0f, 0, 1.0f);
+
+		if(MuzzleFX)
+		{
+			UGameplayStatics::SpawnEmitterAttached(MuzzleFX, MeshComp, MuzzleSocketName);
+		}
 
 	}
 	
