@@ -274,9 +274,10 @@ void ASCharacter::UpdateGrapple()
 		ForceComp->AddForce(Dir);
 
 		//FVector SwingForce = CameraComp->GetForwardVector();
-		//SwingForce *= 10000.0f;
+		FVector SwingForce = GetMesh()->GetRightVector();
+		SwingForce *= 1000.0f;
 
-		//ForceComp->AddForce(SwingForce);
+		ForceComp->AddForce(SwingForce);
 
 	}
 	else
