@@ -232,7 +232,6 @@ void ASCharacter::Grapple()
 		FVector end = start + (CameraComp->GetForwardVector() * HookLength);
 		if(GetWorld()->SweepSingleByChannel(hit, start, end, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(15.0f)))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Sweep succesfull"));
 			HookPoint = hit.Location;
 			bGrappleConnected = true;
 			

@@ -79,7 +79,7 @@ void ASWeapon::Fire()
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, false, 1.0f, 0, 1.0f);
 		}
 
-		
+		PlayFireFX();
 
 	}
 	
@@ -100,6 +100,16 @@ void ASWeapon::PlayFireFX()
 		if (TracerComp)
 		{
 			TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
+		}
+	}
+
+	APawn* MyOwner = Cast<APawn>(GetOwner());
+	if(MyOwner)
+	{
+		APlayerController* PC = Cast<APlayerController>(MyOwner->GetController());
+		if(PC)
+		{
+			PC->ClientPlayCameraShake(FireCamShake);
 		}
 	}
 }

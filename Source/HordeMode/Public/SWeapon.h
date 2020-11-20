@@ -50,6 +50,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
 	UParticleSystem* TracerFX;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|FX")
+	TSubclassOf<UCameraShake> FireCamShake;
+
 	FVector TracerEndPoint;
 
 public:	

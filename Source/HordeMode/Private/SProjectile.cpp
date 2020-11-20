@@ -4,6 +4,7 @@
 #include "SProjectile.h"
 
 #include "DrawDebugHelpers.h"
+#include "SWeapon.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -48,9 +49,6 @@ void ASProjectile::Explode()
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, GetActorLocation());
 	TArray<AActor*> ToIgnore;
 	//ToIgnore.Init(this, 1);
-	if(UGameplayStatics::ApplyRadialDamage(GetWorld(), 50.0f, GetActorLocation(), 350.0f, DamageType, ToIgnore, this, GetOwner()->GetInstigatorController(), true, ECC_Visibility) == true)
-	{
-		DrawDebugSphere(GetWorld(), GetActorLocation(), 350.0f, 12, FColor::Red, false, 1.0f, 0, 0.2f);
-	}
+	UGameplayStatics::ApplyRadialDamage(GetWorld(), 50.0f, GetActorLocation(), 350.0f, DamageType, ToIgnore, this, GetOwner()->GetInstigatorController(), true, ECC_Visibility);
 	Destroy();
 }
