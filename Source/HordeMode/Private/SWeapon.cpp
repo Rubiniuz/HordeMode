@@ -8,30 +8,17 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 
+static bool DebugWeaponDrawing = false;
+FAutoConsoleVariableRef CVARDebugWeaopnDrawing(TEXT("Horde.DebugWeapons"), DebugWeaponDrawing, TEXT("Draws Debug for Weapons"), ECVF_Cheat);
+
 // Sets default values
 ASWeapon::ASWeapon()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
 
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "BeamEnd";
-}
-
-// Called when the game starts or when spawned
-void ASWeapon::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ASWeapon::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 void ASWeapon::Fire()
@@ -58,6 +45,8 @@ void ASWeapon::Fire()
 
 		FVector ShotDirection = EyeRotation.Vector();
 		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);*/
+		FTransform MuzzleTransform = MeshComp->GetSocketTransform(MuzzleSocketName);
+		FVector MuzzleLoc = MuzzleTransform.GetLocation();
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
@@ -85,8 +74,10 @@ void ASWeapon::Fire()
 		}
 
 		//temp line : #Include "DrawDebugHelpers.h
-
-		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, false, 1.0f, 0, 1.0f);
+		if(DebugWeaponDrawing == true)
+		{
+			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, false, 1.0f, 0, 1.0f);
+		}
 
 		if(MuzzleFX)
 		{

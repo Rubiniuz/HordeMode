@@ -236,26 +236,18 @@ void ASCharacter::UpdateGrapple()
 	else
 	{
 		GetCharacterMovement()->GravityScale = 1.0f;
-		bReelIn = false;
-		bReelOut = false;
 		//bSimGravityDisabled = false;
 	}
 }
 
 void ASCharacter::ReelIn()
 {
-	if (bGrappleConnected == true)
-	{
-		bReelIn = true;
-	}
+	bReelIn = true;
 }
 
 void ASCharacter::ReelOut()
 {
-	if (bGrappleConnected == true)
-	{
-		bReelOut = true;
-	}
+	bReelOut = true;
 }
 
 void ASCharacter::StopReelIn()
