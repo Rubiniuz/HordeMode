@@ -5,6 +5,8 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 ASWeapon::ASWeapon()
@@ -16,7 +18,7 @@ ASWeapon::ASWeapon()
 	RootComponent = MeshComp;
 
 	MuzzleSocketName = "MuzzleSocket";
-
+	TracerTargetName = "BeamEnd";
 }
 
 // Called when the game starts or when spawned
@@ -42,15 +44,28 @@ void ASWeapon::Fire()
 	{
 		FVector EyeLocation;
 		FRotator EyeRotation;
+		
 		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
 		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
 
+		//fire from weapon not from camera
+		/*FTransform MuzzleTransform = MeshComp->GetSocketTransform(MuzzleSocketName);
+
+		FVector EyeLocation = MuzzleTransform.GetLocation();
+		FRotator EyeRotation = MuzzleTransform.Rotator();
+
+		FVector ShotDirection = EyeRotation.Vector();
+		FVector TraceEnd = EyeLocation + (ShotDirection * 10000);*/
+
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.bTraceComplex = true;
+
+		//ParticleSystem target param
+		FVector TracerEndPoint = TraceEnd;
 
 		FHitResult Hit;
 		if(GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams))
@@ -65,6 +80,8 @@ void ASWeapon::Fire()
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 			}
+
+			TracerEndPoint = Hit.ImpactPoint;
 		}
 
 		//temp line : #Include "DrawDebugHelpers.h
@@ -74,6 +91,17 @@ void ASWeapon::Fire()
 		if(MuzzleFX)
 		{
 			UGameplayStatics::SpawnEmitterAttached(MuzzleFX, MeshComp, MuzzleSocketName);
+		}
+
+		if(TracerFX)
+		{
+			FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+			UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerFX, MuzzleLocation);
+
+			if(TracerComp)
+			{
+				TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
+			}
 		}
 
 	}

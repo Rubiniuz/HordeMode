@@ -27,7 +27,7 @@ protected:
 	USkeletalMeshComponent* MeshComp;
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void Fire();
+	virtual void Fire();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Variables")
 	TSubclassOf<UDamageType> DamageType;
@@ -35,11 +35,17 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sockets")
 	FName MuzzleSocketName;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Sockets")
+	FName TracerTargetName;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
 	UParticleSystem* MuzzleFX;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
 	UParticleSystem* ImpactFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
+	UParticleSystem* TracerFX;
 
 public:	
 	// Called every frame
