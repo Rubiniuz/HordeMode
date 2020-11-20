@@ -19,13 +19,18 @@ public:
 	// Sets default values for this actor's properties
 	ASWeapon();
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+		virtual void Fire();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Variables")
+	float FiringSpeed;
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComp;
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	virtual void Fire();
+	virtual void PlayFireFX();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Variables")
 	TSubclassOf<UDamageType> DamageType;
@@ -44,6 +49,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|FX")
 	UParticleSystem* TracerFX;
+
+	FVector TracerEndPoint;
 
 public:	
 	

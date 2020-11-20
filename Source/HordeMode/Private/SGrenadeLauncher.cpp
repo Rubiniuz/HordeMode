@@ -10,7 +10,6 @@
 
 void ASGrenadeLauncher::Fire()
 {
-
 	// try and fire a projectile
 	if (Projectile)
 	{

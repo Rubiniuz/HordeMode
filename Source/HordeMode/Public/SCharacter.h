@@ -10,6 +10,7 @@ class UCableComponent;
 class USphereComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class ASWeapon;
 
 UCLASS()
 class HORDEMODE_API ASCharacter : public ACharacter
@@ -26,7 +27,6 @@ protected:
 
 	virtual void Landed(const FHitResult& Hit) override;
 
-
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
@@ -42,6 +42,23 @@ protected:
 
 	void BeginZoom();
 	void EndZoom();
+
+	void BeginFire();
+	void EndFire();
+
+	bool bIsFiring;
+
+	ASWeapon* CurrentWeapon;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Shooting")
+	FName WeaponAttachSocket;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
+	TSubclassOf<ASWeapon> StarterWeapon;
+
+	void UpdateWeapon(float DeltaTime);
+
+	float FireTimer;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;

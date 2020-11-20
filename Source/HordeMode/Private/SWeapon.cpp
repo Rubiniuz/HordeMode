@@ -54,7 +54,7 @@ void ASWeapon::Fire()
 		QueryParams.bTraceComplex = true;
 
 		//ParticleSystem target param
-		FVector TracerEndPoint = TraceEnd;
+		TracerEndPoint = TraceEnd;
 
 		FHitResult Hit;
 		if(GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, ECC_Visibility, QueryParams))
@@ -79,22 +79,27 @@ void ASWeapon::Fire()
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::Red, false, 1.0f, 0, 1.0f);
 		}
 
-		if(MuzzleFX)
-		{
-			UGameplayStatics::SpawnEmitterAttached(MuzzleFX, MeshComp, MuzzleSocketName);
-		}
-
-		if(TracerFX)
-		{
-			FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-			UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerFX, MuzzleLocation);
-
-			if(TracerComp)
-			{
-				TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
-			}
-		}
+		
 
 	}
 	
+}
+
+void ASWeapon::PlayFireFX()
+{
+	if (MuzzleFX)
+	{
+		UGameplayStatics::SpawnEmitterAttached(MuzzleFX, MeshComp, MuzzleSocketName);
+	}
+
+	if (TracerFX)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		UParticleSystemComponent* TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerFX, MuzzleLocation);
+
+		if (TracerComp)
+		{
+			TracerComp->SetVectorParameter(TracerTargetName, TracerEndPoint);
+		}
+	}
 }
