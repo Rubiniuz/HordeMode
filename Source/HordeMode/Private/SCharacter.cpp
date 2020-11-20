@@ -32,6 +32,9 @@ ASCharacter::ASCharacter()
 	JumpMaxHoldTime = 0.1f;
 
 	SprintSpeedMultiplier = 1.45f;
+
+	ADSFOV = 65.0f;
+	ADSInterpSpeed = 20.0f;
 	
 	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	SphereComp->SetupAttachment(RootComponent);
@@ -45,6 +48,10 @@ void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	JumpMaxCount = MaxJumps;
+
+	bWantsADS = false;
+	DefaultFOV = CameraComp->FieldOfView;
+
 	bGrappleConnected = false;
 }
 
@@ -52,6 +59,13 @@ void ASCharacter::BeginPlay()
 void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	float TargetFOV = bWantsADS ? ADSFOV : DefaultFOV;
+
+	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ADSInterpSpeed);
+
+    CameraComp->SetFieldOfView(NewFOV);
+
 	UpdateReeling();
 	UpdateGrapple();
 }
@@ -85,6 +99,9 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::StopSprint);
+
+	PlayerInputComponent->BindAction("ADS", IE_Pressed, this, &ASCharacter::BeginZoom);
+	PlayerInputComponent->BindAction("ADS", IE_Released, this, &ASCharacter::EndZoom);
 
 	PlayerInputComponent->BindAction("Grapple", IE_Pressed, this, &ASCharacter::Grapple);
 	PlayerInputComponent->BindAction("ReelIn", IE_Pressed, this, &ASCharacter::ReelIn);
@@ -147,6 +164,16 @@ void ASCharacter::Sprint()
 void ASCharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed /= SprintSpeedMultiplier;
+}
+
+void ASCharacter::BeginZoom()
+{
+	bWantsADS = true;
+}
+
+void ASCharacter::EndZoom()
+{
+	bWantsADS = false;
 }
 
 void ASCharacter::Grapple()

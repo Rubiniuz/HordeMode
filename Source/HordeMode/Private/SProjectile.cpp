@@ -2,6 +2,8 @@
 
 
 #include "SProjectile.h"
+
+#include "DrawDebugHelpers.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -44,11 +46,11 @@ void ASProjectile::BeginPlay()
 void ASProjectile::Explode()
 {
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactFX, GetActorLocation());
-	TArray<AActor*> Actors;
-	ExplosionComp->GetOverlappingActors(Actors);
-	for (AActor* Actor : Actors)
+	TArray<AActor*> ToIgnore;
+	//ToIgnore.Init(this, 1);
+	if(UGameplayStatics::ApplyRadialDamage(GetWorld(), 50.0f, GetActorLocation(), 350.0f, DamageType, ToIgnore, this, GetOwner()->GetInstigatorController(), true, ECC_Visibility) == true)
 	{
-		UGameplayStatics::ApplyDamage(Actor, 50.0f, GetOwner()->GetInstigatorController(), this, DamageType);
+		DrawDebugSphere(GetWorld(), GetActorLocation(), 350.0f, 12, FColor::Red, false, 1.0f, 0, 0.2f);
 	}
 	Destroy();
 }
