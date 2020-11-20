@@ -56,6 +56,16 @@ void ASCharacter::Tick(float DeltaTime)
 	UpdateGrapple();
 }
 
+FVector ASCharacter::GetPawnViewLocation() const
+{
+    if(CameraComp)
+    {
+		return CameraComp->GetComponentLocation();
+    }
+
+	return Super::GetPawnViewLocation();
+}
+
 // Called to bind functionality to input
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
