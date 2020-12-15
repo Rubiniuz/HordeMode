@@ -10,7 +10,6 @@
 
 void ASGrenadeLauncher::Fire()
 {
-
 	// try and fire a projectile
 	if (Projectile)
 	{
@@ -20,7 +19,7 @@ void ASGrenadeLauncher::Fire()
 		//Set Spawn Collision Handling Override
 		FActorSpawnParameters ActorSpawnParams;
 		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		ActorSpawnParams.Owner = this;
+		ActorSpawnParams.Owner = this->GetOwner();
 
 		AActor* MyOwner = GetOwner();
 

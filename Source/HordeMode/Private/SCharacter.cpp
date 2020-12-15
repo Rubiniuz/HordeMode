@@ -3,6 +3,7 @@
 #include "HordeMode/Public/SCharacter.h"
 
 #include "CableComponent.h"
+#include "SWeapon.h"
 #include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -32,12 +33,19 @@ ASCharacter::ASCharacter()
 	JumpMaxHoldTime = 0.1f;
 
 	SprintSpeedMultiplier = 1.45f;
+
+	ADSFOV = 65.0f;
+	ADSInterpSpeed = 20.0f;
+
+	FireTimer = 0.0f;
 	
 	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	SphereComp->SetupAttachment(RootComponent);
 
 	CableComp = CreateDefaultSubobject<UCableComponent>(TEXT("CableComp"));
 	CableComp->SetupAttachment(RootComponent);
+
+	WeaponAttachSocket = "WeaponSocket";
 }
 
 // Called when the game starts or when spawned
@@ -45,13 +53,31 @@ void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	JumpMaxCount = MaxJumps;
+
+	bWantsADS = false;
+	DefaultFOV = CameraComp->FieldOfView;
+
 	bGrappleConnected = false;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	CurrentWeapon = GetWorld()->SpawnActor<ASWeapon>(StarterWeapon, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	if(CurrentWeapon)
+	{
+		CurrentWeapon->SetOwner(this);
+		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocket);
+		FireTimer = CurrentWeapon->FiringSpeed;
+	}
 }
 
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UpdateWeapon(DeltaTime);
+
 	UpdateReeling();
 	UpdateGrapple();
 }
@@ -85,6 +111,12 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::StopSprint);
+
+	PlayerInputComponent->BindAction("ADS", IE_Pressed, this, &ASCharacter::BeginZoom);
+	PlayerInputComponent->BindAction("ADS", IE_Released, this, &ASCharacter::EndZoom);
+
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASCharacter::BeginFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASCharacter::EndFire);
 
 	PlayerInputComponent->BindAction("Grapple", IE_Pressed, this, &ASCharacter::Grapple);
 	PlayerInputComponent->BindAction("ReelIn", IE_Pressed, this, &ASCharacter::ReelIn);
@@ -149,6 +181,48 @@ void ASCharacter::StopSprint()
 	GetCharacterMovement()->MaxWalkSpeed /= SprintSpeedMultiplier;
 }
 
+void ASCharacter::BeginZoom()
+{
+	bWantsADS = true;
+}
+
+void ASCharacter::EndZoom()
+{
+	bWantsADS = false;
+}
+
+void ASCharacter::BeginFire()
+{
+	bIsFiring = true;
+}
+
+void ASCharacter::EndFire()
+{
+	bIsFiring = false;
+}
+
+void ASCharacter::UpdateWeapon(float DeltaTime)
+{
+	float TargetFOV = bWantsADS ? ADSFOV : DefaultFOV;
+
+	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ADSInterpSpeed);
+
+	CameraComp->SetFieldOfView(NewFOV);
+
+	FireTimer += DeltaTime;
+	
+	if (FireTimer >= CurrentWeapon->FiringSpeed)
+	{
+		if (bIsFiring == true)
+		{
+			CurrentWeapon->Fire();
+			FireTimer = 0;
+		}
+	}
+	
+}
+
+
 void ASCharacter::Grapple()
 {
 	if(bGrappleConnected == false)
@@ -158,7 +232,6 @@ void ASCharacter::Grapple()
 		FVector end = start + (CameraComp->GetForwardVector() * HookLength);
 		if(GetWorld()->SweepSingleByChannel(hit, start, end, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(15.0f)))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Sweep succesfull"));
 			HookPoint = hit.Location;
 			bGrappleConnected = true;
 			
@@ -201,34 +274,27 @@ void ASCharacter::UpdateGrapple()
 		ForceComp->AddForce(Dir);
 
 		//FVector SwingForce = CameraComp->GetForwardVector();
-		//SwingForce *= 10000.0f;
+		FVector SwingForce = GetMesh()->GetRightVector();
+		SwingForce *= 1000.0f;
 
-		//ForceComp->AddForce(SwingForce);
+		ForceComp->AddForce(SwingForce);
 
 	}
 	else
 	{
 		GetCharacterMovement()->GravityScale = 1.0f;
-		bReelIn = false;
-		bReelOut = false;
 		//bSimGravityDisabled = false;
 	}
 }
 
 void ASCharacter::ReelIn()
 {
-	if (bGrappleConnected == true)
-	{
-		bReelIn = true;
-	}
+	bReelIn = true;
 }
 
 void ASCharacter::ReelOut()
 {
-	if (bGrappleConnected == true)
-	{
-		bReelOut = true;
-	}
+	bReelOut = true;
 }
 
 void ASCharacter::StopReelIn()

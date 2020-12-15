@@ -13,5 +13,11 @@
 				"CableComponent"
 			]
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "RemoteControl",
+			"Enabled": true
+		}
 	]
 }

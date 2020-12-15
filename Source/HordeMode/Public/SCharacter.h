@@ -10,6 +10,7 @@ class UCableComponent;
 class USphereComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class ASWeapon;
 
 UCLASS()
 class HORDEMODE_API ASCharacter : public ACharacter
@@ -26,7 +27,6 @@ protected:
 
 	virtual void Landed(const FHitResult& Hit) override;
 
-
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
@@ -40,38 +40,68 @@ protected:
 	void Sprint();
 	void StopSprint();
 
+	void BeginZoom();
+	void EndZoom();
+
+	void BeginFire();
+	void EndFire();
+
+	bool bIsFiring;
+
+	ASWeapon* CurrentWeapon;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Shooting")
+	FName WeaponAttachSocket;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
+	TSubclassOf<ASWeapon> StarterWeapon;
+
+	void UpdateWeapon(float DeltaTime);
+
+	float FireTimer;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(EditAnywhere, Category = "Movement: Jumping")
+	UPROPERTY(EditAnywhere, Category = "Movement|Jumping")
 	int JumpCount;
 
-	UPROPERTY(EditAnywhere, Category = "Movement: Jumping")
+	UPROPERTY(EditAnywhere, Category = "Movement|Jumping")
 	int MaxJumps;
 
-	UPROPERTY(EditAnywhere, Category = "Movement: Sprinting")
+	UPROPERTY(EditAnywhere, Category = "Movement|Sprinting")
 	float SprintSpeedMultiplier;
 
+	bool bWantsADS;
+
+	float DefaultFOV;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Shooting")
+	float ADSFOV;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shooting", meta = (ClampMin = 0.1, ClampMax = 100))
+	float ADSInterpSpeed;
+
 	//Grapple stuff
-	UPROPERTY(VisibleAnywhere, Category = "Grapple : Components")
+	UPROPERTY(VisibleAnywhere, Category = "Grappling|Components")
 	    USphereComponent* SphereComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Grapple : Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Grappling|Components")
 		class UCableComponent* CableComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling : Components")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grappling|Components")
 		UBlueprint* HookPointActor; // Actor HookPoint
 
-	UPROPERTY(EditAnywhere, Category = "Grappling : Variables")
+	UPROPERTY(EditAnywhere, Category = "Grappling|Variables")
 	    float HookLength; // 5000
 
-	UPROPERTY(EditAnywhere, Category = "Grappling : Variables")
+	UPROPERTY(EditAnywhere, Category = "Grappling|Variables")
 	    float GrappleSpeed; // -2
 
-	UPROPERTY(EditAnywhere, Category = "Grappling : Variables")
+	UPROPERTY(EditAnywhere, Category = "Grappling|Variables")
 		float ReelingSpeed; // -2
 
 
